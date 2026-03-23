@@ -7,11 +7,9 @@ for i = 1:length(isolated_vertices)
     search_radius = 1;
 
     while num_neighbor_element(iso_pred) == 0
-        % 检查当前半径的左右两个位置
         left_idx = iso_pred - search_radius;
         right_idx = iso_pred + search_radius;
 
-        % 检查右侧点
         if right_idx <= numVertices && num_neighbor_element(right_idx) ~= 0
             iso_pred = right_idx;
             pred_vertex(:, isolated_vertices(i)) = vlist(:, iso_pred);
@@ -19,7 +17,6 @@ for i = 1:length(isolated_vertices)
             break;
         end
 
-        % 检查左侧点
         if left_idx >= 1 && num_neighbor_element(left_idx) ~= 0
             iso_pred = left_idx;
             pred_vertex(:, isolated_vertices(i)) = vlist(:, iso_pred);
