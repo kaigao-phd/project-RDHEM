@@ -51,7 +51,7 @@ while ~all(used_vertex(:) == 1)
             end
             queue = curr_neighbors;
             queue = queue(queue ~= 0);
-            continue;  % 继续主循环
+            continue; 
         end
     end
 
