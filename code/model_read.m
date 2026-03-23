@@ -1,12 +1,10 @@
 function [numVertices, numFaces, flist, vlist] = model_read(model)
-% 获取文件后缀
+
 [~, ~, fileExt] = fileparts(model);
 
-% 转换为小写以进行判断
 fileExt = lower(fileExt);
 
 if strcmp(fileExt, '.ply')
-    % 处理PLY文件
     [v, f] = read_ply(model);
     vlist = v';
     flist = f';
@@ -14,7 +12,6 @@ if strcmp(fileExt, '.ply')
     numFaces = length(flist(1, :));
 
 elseif strcmp(fileExt, '.off')
-    % 处理OFF文件
     fid = fopen(model, 'r');
     if fid == -1
         error('无法打开文件：%s', model);
@@ -27,7 +24,6 @@ elseif strcmp(fileExt, '.off')
         rethrow(ME);
     end
 
-    % 关闭文件
     fclose(fid);
 else
     error('不支持的文件格式：%s', fileExt);
