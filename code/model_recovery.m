@@ -198,9 +198,7 @@ queue = queue(queue ~= 0);
 num_available_neighbor = zeros(1, numVertices);
 
 test_index = 1;
-% 检查是否所有邻居都已标记为1
 all_vertices = 1:length(recovered_table);
-% 找出非孤立点的索引
 zero_indices = find(sorted_num_neighbor_element == 0);
 isolated_vertices = I(zero_indices);
 non_isolated_vertices = setdiff(all_vertices, isolated_vertices);
@@ -208,25 +206,21 @@ non_isolated_vertices = setdiff(all_vertices, isolated_vertices);
 
 while ~all(recovered_table(non_isolated_vertices) == 1)
     if isempty(queue)
-        % 找到第一个未处理的顶点
         start_vertex = find(recovered_table == 0, 1);
         if ~isempty(start_vertex)
-            % 初始化这个新的起始点
             search_radius = 1;
 
             while recovered_table(start_vertex) == 0
-                % 检查当前半径的左右两个位置
+
                 left_idx = start_vertex - search_radius;
                 right_idx = start_vertex + search_radius;
 
-                % 检查右侧点
                 if right_idx <= numVertices && recovered_table(right_idx) == 1 && ~ismember(right_idx, isolated_vertices)
                     rev_pred_vertex(:, start_vertex) = reconstruct_model(:, right_idx);
                     recovered_table(start_vertex) = 1;
                     break;
                 end
 
-                % 检查左侧点
                 if left_idx >= 1 && recovered_table(left_idx) == 1 && ~ismember(left_idx, isolated_vertices)
                     rev_pred_vertex(:, start_vertex) = reconstruct_model(:, left_idx);
                     recovered_table(start_vertex) = 1;
@@ -257,7 +251,6 @@ while ~all(recovered_table(non_isolated_vertices) == 1)
             curr_neighbors = neighbor(:, start_vertex);
             curr_neighbors = curr_neighbors(curr_neighbors ~= 0);
 
-            % 标记其邻居并设置预测值
             if ~isempty(curr_neighbors)
                 recovered_table(curr_neighbors(1)) = 1;
                 rev_pred_vertex(:, curr_neighbors(1)) = reconstruct_model(:, start_vertex);
@@ -281,10 +274,9 @@ while ~all(recovered_table(non_isolated_vertices) == 1)
                 end
             end
 
-            % 将新起始点的邻居加入队列
             queue = curr_neighbors;
             queue = queue(queue ~= 0);
-            continue;  % 继续主循环
+            continue; 
         end
     end
 
@@ -297,11 +289,9 @@ while ~all(recovered_table(non_isolated_vertices) == 1)
         new_queue = [new_queue, neighbor(:, current_vertex)];
         if recovered_table(current_vertex) ~= 1
             mark = 0;
-            % 获取current_vertex的一度邻居
             curr_neighbors = neighbor(:, current_vertex);
             curr_neighbors = curr_neighbors(curr_neighbors ~= 0);
 
-            % 找到满足条件的vertex_a
             valid_a = curr_neighbors(recovered_table(curr_neighbors) == 1);
 
             num_available_neighbor(current_vertex) = length(valid_a);
@@ -309,10 +299,8 @@ while ~all(recovered_table(non_isolated_vertices) == 1)
             if ~isempty(valid_a)
                 mirror_vertex = vlist(:, valid_a);
                 if size(mirror_vertex, 2) > 2
-                    % 计算所有点对之间的距离
                     num_points = size(mirror_vertex, 2);
-                    distances = inf(num_points); % 改为 inf 初始化
-                    % 构建距离矩阵
+                    distances = inf(num_points); 
                     for p1 = 1:num_points
                         for p2 = p1+1:num_points
                             point1 = round(mirror_vertex(:,p1) * 10^m) / 10^m;
@@ -320,30 +308,24 @@ while ~all(recovered_table(non_isolated_vertices) == 1)
                             distances(p1,p2) = norm(point1 - point2);
                             distances(p2,p1) = distances(p1,p2);
                         end
-                        distances(p1,p1) = -inf; % 设置对角线为 -inf
+                        distances(p1,p1) = -inf; 
                     end
-                    % 找到最大距离对应的点对
                     [max_dist, idx] = max(distances(:));
                     [point1_idx, point2_idx] = ind2sub(size(distances), idx);
 
-                    % 计算直线方向向量
                     line_dir = mirror_vertex(:,point2_idx) - mirror_vertex(:,point1_idx);
-                    if norm(line_dir) == 0  % 如果所有点都重合
+                    if norm(line_dir) == 0  
                         mirror_point = round(mirror_vertex(:,point1_idx) * 10^m) / 10^m;
                     else
-                        % 计算最远两点的中点
                         midpoint = (mirror_vertex(:,point1_idx) + mirror_vertex(:,point2_idx)) / 2;
                         midpoint = round(midpoint * 10^m) / 10^m;
 
-                        % 创建一个索引数组，排除最远的两个点
                         other_points_idx = setdiff(1:num_points, [point1_idx, point2_idx]);
 
-                        % 只对其他点(除了最远的两点)进行镜像变换
                         mirror_points = zeros(3, length(other_points_idx));
                         for ii = 1:length(other_points_idx)
                             p = other_points_idx(ii);
                             point = mirror_vertex(:,p);
-                            % 镜像变换：2*中点 - 原点 = 镜像点
                             mirror_points(:,ii) = 2 * midpoint - point;
                             mirror_points(:,ii) = round(mirror_points(:,ii) * 10^m) / 10^m;
                         end
@@ -352,7 +334,6 @@ while ~all(recovered_table(non_isolated_vertices) == 1)
                             mirror_point = mean(mirror_points, 2);
                             mirror_point = round(mirror_point * 10^m) / 10^m;
                         else
-                            % 如果只有两个最远点，直接使用中点
                             mirror_point = midpoint;
                             mirror_point = round(mirror_point * 10^m) / 10^m;
                         end
@@ -370,7 +351,6 @@ while ~all(recovered_table(non_isolated_vertices) == 1)
                     LM_index = LM_index + 1;
                     mark = 1;
                 else
-                    % 只有一个点的情况
                     mean_point = mean(mirror_vertex, 2);
                     mirror_point = round(mean_point * 10^m) / 10^m;
                 end
@@ -404,8 +384,8 @@ while ~all(recovered_table(non_isolated_vertices) == 1)
     end
 
     new_queue = new_queue(new_queue ~= 0);
-    new_queue = unique(new_queue);  % 去重
-    new_queue = new_queue(recovered_table(new_queue) ~= 1);  % 去除已处理的点
+    new_queue = unique(new_queue); 
+    new_queue = new_queue(recovered_table(new_queue) ~= 1);
     queue = new_queue;
     test_index = test_index + 1;
 end
@@ -420,7 +400,6 @@ for i = 1:length(isolated_vertices)
         left_idx = rev_iso_pred - search_radius;
         right_idx = rev_iso_pred + search_radius;
 
-        % 检查右侧点
         if right_idx <= numVertices && num_neighbor_element(right_idx) ~= 0
             rev_iso_pred = right_idx;
             rev_pred_vertex(:, current_vertex) = reconstruct_model(:, rev_iso_pred);
@@ -428,7 +407,6 @@ for i = 1:length(isolated_vertices)
             break;
         end
 
-        % 检查左侧点
         if left_idx >= 1 && num_neighbor_element(left_idx) ~= 0
             rev_iso_pred = left_idx;
             rev_pred_vertex(:, current_vertex) = reconstruct_model(:, rev_iso_pred);
